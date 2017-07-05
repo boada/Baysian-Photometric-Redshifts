@@ -1,0 +1,8 @@
+# Filters obtained via email from Sean Points in March 2011, to update
+# the observations from 2009B, multiply wave*10
+
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' dbsdssup00.txt > u_SDSS_SOI.res 
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' dbsdssgp00.txt > g_SDSS_SOI.res 
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' dbsdssrp00.txt > r_SDSS_SOI.res 
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' drsdssip00.txt > i_SDSS_SOI.res 
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' drsdsszp00.txt > z_SDSS_SOI.res 

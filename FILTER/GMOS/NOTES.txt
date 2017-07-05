@@ -1,0 +1,7 @@
+# from: http://www.gemini.edu/sciops/instruments/gmos/imaging/filters
+
+awk '{if ($1!="#") printf "%6.2f %12.8f\n",$1*10.,$2}' gmos_s_g_G0325.txt > g_GMOS.res 
+awk '{if ($1!="#") printf "%6.2f %12.8f\n",$1*10.,$2}' gmos_s_r_G0326.txt > r_GMOS.res 
+awk '{if ($1!="#") printf "%6.2f %12.8f\n",$1*10.,$2}' gmos_s_i_G0327.txt > i_GMOS.res 
+awk '{if ($1!="#") printf "%6.2f %12.8f\n",$1*10.,$2}' gmos_s_z_G0328.txt > z_GMOS.res 
+

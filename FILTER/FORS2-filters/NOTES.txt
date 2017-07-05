@@ -1,0 +1,6 @@
+# Filters obtained from the ESO webpage
+# http://www.eso.org/paranal/instruments/fors1/inst/Filters/curves.html
+
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' I_BESS_FORS2.dat    > I_BESS_FORS2.res
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' R_SPECIAL_FORS2.dat > R_SPECIAL_FORS2.res
+awk '{printf "%6.2f %12.8f\n",$1*10.,$2}' z_GUNN_FORS2.dat    > z_GUNN_FORS2.res 
