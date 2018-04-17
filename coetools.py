@@ -15,29 +15,16 @@ from builtins import range
 from past.utils import old_div
 import os
 import sys
-#import shutil
-#from glob import glob
-#import fitsio
-#import math
-#from Numeric import *
-from numpy import *
-sys.float_output_precision = 5  # PRINTING ARRAYS: # OF DECIMALS
+#from numpy import *
+import numpy
 from types import *  # TO TELL WHAT TYPE A VARIABLE IS
-from time import *
+from time import time
 from MLab_coe import *  #median, std, mean
-#from bisect import bisect  # WHERE ITEM WOULD FIT IN SORTED LIST
-#from RandomArray import *
-#from biggles import *
-#from useful import points, connect, mark_faroutliers
-#from sortcat import sortcat
-#from NumTut import *  # view ARRAY VIEWER
-#from colormap import colormap, Colormap, addColormap
-# plotconfig() CALLED BELOW
-#import numarray
-#import pyfits
 from compress2 import compress2 as compress
 import subprocess
 import string  # LOAD THIS AFTER numpy, BECAUSE numpy HAS ITS OWN string
+
+sys.float_output_precision = 5  # PRINTING ARRAYS: # OF DECIMALS
 
 # ORIGINALLY ksbtools.py
 # NOW coetools.py, BROKEN INTO coeio, smooth
@@ -50,20 +37,18 @@ import string  # LOAD THIS AFTER numpy, BECAUSE numpy HAS ITS OWN string
 #from coeio import *
 #from smooth import *
 
-numerix = os.environ.get('NUMERIX', '')
-
 pwd = os.getcwd
 die = sys.exit
 
 
 def color1to255(color):
-    return tuple((array(color) * 255. + 0.49
+    return tuple((numpy.array(color) * 255. + 0.49
                   ).astype(int).tolist())  # CONVERT TO 0-255 SCALE
 
 
 def color255to1(color):
     return tuple((old_div(
-        array(color), 255.)).tolist())  # CONVERT TO 0-255 SCALE
+        numpy.array(color), 255.)).tolist())  # CONVERT TO 0-255 SCALE
 
 
 def color2hex(color):
@@ -88,8 +73,8 @@ def keyvals(k, keys, vals):
     d[0] = 0
     f = lambda x: d[x]
     v = list(map(f, ravel(k)))
-    if type(k) == type(array([])):
-        v = array(v)
+    if type(k) == type(numpy.array([])):
+        v = numpy.array(v)
         v.shape = k.shape
     return v
 
@@ -245,13 +230,13 @@ def FltArr(n0, n1):
     #a = ones([n0,n1], dtype=float32)
     #a = ones([n0,n1], float32)  # DATA READ IN LESS ACCURATELY IN loaddata !!
     # float32 can't handle more than 8 significant digits
-    a = ones([n0, n1], float)
+    a = numpy.ones([n0, n1], float)
     return (a[:])
 
 
 def IndArr(n0, n1):
     """MAKES A 2-D INTEGER ARRAY WITH INCREASING INDEX"""
-    a = arange(n0 * n1)
+    a = numpy.arange(n0 * n1)
     return resize(a, [n0, n1])
 
 #################################
@@ -425,10 +410,10 @@ def putids(selfvalues, selfids, ids, values):
         n = len(selfvalues)
     except:
         n = len(selfids)
-        selfvalues = zeros(n, int) + selfvalues
-    indexlist = zeros(max(selfids) + 1, int) - 1
-    put(indexlist, array(selfids).astype(int), arange(len(selfids)))
-    indices = take(indexlist, array(ids).astype(int))
+        selfvalues = numpy.zeros(n, int) + selfvalues
+    indexlist = numpy.zeros(max(selfids) + 1, int) - 1
+    put(indexlist, numpy.array(selfids).astype(int), numpy.arange(len(selfids)))
+    indices = take(indexlist, numpy.array(ids).astype(int))
     put(selfvalues, indices, values)
     return selfvalues
 
@@ -442,15 +427,15 @@ def takelist(a, ind):
 
 def common(id1, id2):
     # ASSUME NO IDS ARE NEGATIVE
-    id1 = array(id1).astype(int)
-    id2 = array(id2).astype(int)
+    id1 = numpy.array(id1).astype(int)
+    id2 = numpy.array(id2).astype(int)
     n = max((max(id1), max(id2)))
-    in1 = zeros(n + 1, int)
-    in2 = zeros(n + 1, int)
+    in1 = numpy.zeros(n + 1, int)
+    in2 = numpy.zeros(n + 1, int)
     put(in1, id1, 1)
     put(in2, id2, 1)
     inboth = in1 * in2
-    ids = arange(n + 1)
+    ids = numpy.arange(n + 1)
     ids = compress(inboth, ids)
     return ids
 
@@ -459,9 +444,9 @@ def common(id1, id2):
 def census(a, returndict=1):
     a = sort(ravel(a))
     if returndict:
-        i = arange(min(a), max(a) + 2)
+        i = numpy.arange(min(a), max(a) + 2)
     else:
-        i = arange(max(a) + 2)
+        i = numpy.arange(max(a) + 2)
     s = searchsorted(a, i)
     s = s[1:] - s[:-1]
     i = i[:-1]
@@ -485,8 +470,8 @@ def census(a, returndict=1):
 # ALSO CONSIDER: set(all) - set(ids)
 def invertselection(ids, all):
     if type(all) == int:  # size input
-        all = arange(all) + 1
-        put(all, array(ids) - 1, 0)
+        all = numpy.arange(all) + 1
+        put(all, numpy.array(ids) - 1, 0)
         all = compress(all, all)
         return all
     else:
@@ -500,8 +485,8 @@ def invertselection(ids, all):
 
 def mergeids(id1, id2):
     # ASSUME NO IDS ARE NEGATIVE
-    id1 = array(id1).astype(int)
-    id2 = array(id2).astype(int)
+    id1 = numpy.array(id1).astype(int)
+    id2 = numpy.array(id2).astype(int)
     idc = common(id1, id2)
     id3 = invertselection(idc, id2)
     return concatenate((id1, id3))
@@ -536,7 +521,7 @@ def findmatch(x,
         x = take(x, SI)
         y = take(y, SI)
     else:
-        SI = arange(n)
+        SI = numpy.arange(n)
 
     dist = 99  # IN CASE NO MATCH IS FOUND
 
@@ -558,7 +543,7 @@ def findmatch(x,
         if x[i] - xsearch > dtol:
             done = 'too far'
         else:
-            dist = sqrt((x[i] - xsearch)**2 + (y[i] - ysearch)**2)
+            dist = numpy.sqrt((x[i] - xsearch)**2 + (y[i] - ysearch)**2)
             if dist < dtol:
                 done = 'found'
             elif i == n - 1:
@@ -589,12 +574,12 @@ def findmatches2(x1, y1, x2, y2):
     RETURNS INDICES AND DISTANCES"""
     dx = subtract.outer(x1, x2)
     dy = subtract.outer(y1, y2)
-    d = sqrt(dx**2 + dy**2)
+    d = numpy.sqrt(dx**2 + dy**2)
     i = argmin(d, 0)
 
     n1 = len(x1)
     n2 = len(x2)
-    j = arange(n2)
+    j = numpy.arange(n2)
     di = n2 * i + j
     dmin = take(d, di)
     return i, dmin
@@ -618,7 +603,7 @@ def xref(data, ids, idcol=0, notfoundval=None):
     for id in ids:
         xrefs.append(dict.get(id, notfoundval))
 
-    return array(xrefs)
+    return numpy.array(xrefs)
 
 
 def takeid(data, id):
@@ -650,7 +635,7 @@ def takeids(data, ids, idrow=0, keepzeros=0):
             outdata.append(data[:, i])
         elif keepzeros:
             outdata.append(0. * data[:, 0])
-    return transpose(array(outdata))
+    return transpose(numpy.array(outdata))
 
     #################################
     # FLUX, BPZ
@@ -697,12 +682,12 @@ def addmags(m1, m2, dm1=0, dm2=0):
         F1 = 10**(-0.4 * m1)
         F2 = 10**(-0.4 * m2)
         F = F1 + F2
-        m = -2.5 * log10(F)
+        m = -2.5 * numpy.log10(F)
         #dF1 = 0.921034 * F1 * dm1
         #dF2 = 0.921034 * F2 * dm2
-        #dF = sqrt(dF1 ** 2 + dF2 ** 2)
+        #dF = numpy.sqrt(dF1 ** 2 + dF2 ** 2)
         #dm = dF / F / 0.921034
-        dm = old_div(sqrt((F1 * dm1)**2 + (F2 * dm2)**2), F)
+        dm = old_div(numpy.sqrt((F1 * dm1)**2 + (F2 * dm2)**2), F)
     output = (m, dm)
 
     return output
@@ -710,7 +695,7 @@ def addmags(m1, m2, dm1=0, dm2=0):
 
 def addfluxes(F1, F2, dF1=0, dF2=0):
     F = F1 + F2
-    dF = sqrt(dF1**2 + dF2**2)
+    dF = numpy.sqrt(dF1**2 + dF2**2)
     output = (F, dF)
 
     return output
@@ -729,31 +714,31 @@ def sex2bpzmags(f, ef, zp=0., sn_min=1.):
       characterized as mag=-99 errormag=0.
     """
 
-    nondetected = less_equal(f, 0.) * greater(
+    nondetected = numpy.less_equal(f, 0.) * greater(
         ef, 0)  #Flux <=0, meaningful phot. error
-    nonobserved = less_equal(ef, 0.)  #Negative errors
+    nonobserved = numpy.less_equal(ef, 0.)  #Negative errors
     #Clip the flux values to avoid overflows
-    f = clip(f, 1e-100, 1e10)
-    ef = clip(ef, 1e-100, 1e10)
+    f = numpy.clip(f, 1e-100, 1e10)
+    ef = numpy.clip(ef, 1e-100, 1e10)
     nonobserved += equal(ef, 1e10)
-    nondetected += less_equal(
+    nondetected += numpy.less_equal(
         old_div(f, ef),
         sn_min)  #Less than sn_min sigma detections: consider non-detections
 
     detected = logical_not(nondetected + nonobserved)
 
-    m = zeros(len(f), float)
-    em = zeros(len(ef), float)
+    m = numpy.zeros(len(f), float)
+    em = numpy.zeros(len(ef), float)
 
-    m = where(detected, -2.5 * log10(f) + zp, m)
-    m = where(nondetected, 99., m)
-    m = where(nonobserved, -99., m)
+    m = numpy.where(detected, -2.5 * numpy.log10(f) + zp, m)
+    m = numpy.where(nondetected, 99., m)
+    m = numpy.where(nonobserved, -99., m)
 
-    em = where(detected, 2.5 * log10(1. + old_div(ef, f)), em)
-    #em = where(nondetected,2.5*log10(ef)-zp,em)
-    em = where(nondetected, zp - 2.5 * log10(ef), em)
+    em = numpy.where(detected, 2.5 * numpy.log10(1. + old_div(ef, f)), em)
+    #em = numpy.where(nondetected,2.5*numpy.log10(ef)-zp,em)
+    em = numpy.where(nondetected, zp - 2.5 * numpy.log10(ef), em)
     #print "NOW WITH CORRECT SIGN FOR em"
-    em = where(nonobserved, 0., em)
+    em = numpy.where(nonobserved, 0., em)
     return m, em
 
 # NOTE PLACEMENT OF THIS LINE IS IMPORTANT

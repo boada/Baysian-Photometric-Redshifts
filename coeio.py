@@ -14,16 +14,16 @@ import string
 
 #import fitsio
 try:
-    import pyfits  #, numarray
+    import pyfits  # , numarray
     pyfitsloaded = True
-except:
+except ImportError:
     pyfitsloaded = False
     #pass # print "pyfits not installed, so not importing it"
 
 try:
     import Image
     from coeim import *
-except:
+except ImportError:
     pass  # print "Image not installed, so not importing it"
 
 from os.path import exists, join
@@ -499,8 +499,7 @@ def savedata(data,
                                 nd = ndec(datum, max=7 - ni)
                             # Float32: ABOUT 7 DIGITS ARE ACCURATE (?)
 
-                    if ni > colint[
-                            ix]:  # IF BIGGEST, YOU GET TO DECIDE NEG SPACE OR NO
+                    if ni > colint[ix]:  # IF BIGGEST, YOU GET TO DECIDE NEG SPACE OR NO
                         colneg[ix] = (datum < 0)
                         #print '>', ix, colneg[ix], nd, coldec[ix]
                     elif ni == colint[
@@ -646,7 +645,7 @@ def savedata(data,
                             headline += '  %s' % descriptions[ix]
                     headline += '\n'
                     ##headline += '# %2d %s  %s\n' % (ix+1, label, descriptions[ix])
-                    #ff = '# %%2d %%%ds  %%s\n' % maxcollen  # '# %2d %10s %s\n' 
+                    #ff = '# %%2d %%%ds  %%s\n' % maxcollen  # '# %2d %10s %s\n'
                     #headline += ff % (ix+1, labels[ix], descriptions[ix])
                     #headline += '# %2d %s\n' % (ix+1, descriptions[ix])
                 headline += '#\n'
@@ -665,8 +664,7 @@ def savedata(data,
                 if not header:
                     header = [headline]
                 else:
-                    if header[
-                            -1] != '.':  # SPECIAL CODE TO REFRAIN FROM ADDING TO HEADER
+                    if header[-1] != '.':  # SPECIAL CODE TO REFRAIN FROM ADDING TO HEADER
                         header.append(headline)
 
                 if skycat:
@@ -957,10 +955,7 @@ def loadpymc(filename, dir="", silent=0):
 
 
 class Cat2D_xyflip(object):
-    def __init__(self,
-                 filename='',
-                 dir="",
-                 silent=0,
+    def __init__(self, filename='', dir="", silent=0,
                  labels=('x y z').split()):
         if len(labels) == 2:
             labels.append('z')
@@ -991,10 +986,7 @@ class Cat2D_xyflip(object):
 
 
 class Cat2D(object):
-    def __init__(self,
-                 filename='',
-                 dir="",
-                 silent=0,
+    def __init__(self, filename='', dir="", silent=0,
                  labels=('x y z').split()):
         if len(labels) == 2:
             labels.append('z')
@@ -1105,8 +1097,8 @@ class VarsClass(object):
                 for label in self.labels:
                     print(label)
                     print(tbdata.field(label)[:5])
-                    exec("self.%s = array(tbdata.field('%s'), 'f')" %
-                         (label, label))
+                    exec("self.%s = array(tbdata.field('%s'), 'f')" % (label,
+                                                                       label))
                     print(self.get(label)[:5])
                 self.updatedata()
             elif machinereadable(filename, dir):
@@ -1469,14 +1461,15 @@ class VarsClass(object):
             if not (i % 100):
                 print("%d / %d" % (i, self.len()))
             #matchid, dist = findmatch(searchcat.x, searchcat.y, self.x[i], self.y[i], dtol=dtol[i], silent=1, returndist=1, xsorted=1)  # silent=2*(i<>38)-1
-            matchid, dist = findmatch(searchcat.x,
-                                      searchcat.y,
-                                      self.x[i],
-                                      self.y[i],
-                                      dtol=dtol[i],
-                                      silent=1,
-                                      returndist=1,
-                                      xsorted=0)  # silent=2*(i<>38)-1
+            matchid, dist = findmatch(
+                searchcat.x,
+                searchcat.y,
+                self.x[i],
+                self.y[i],
+                dtol=dtol[i],
+                silent=1,
+                returndist=1,
+                xsorted=0)  # silent=2*(i<>38)-1
             ##             print self.x[i], self.y[i], matchid,
             ##             if matchid < self.len():
             ##                 print searchcat.id[matchid], searchcat.x[matchid], searchcat.y[matchid]
@@ -1525,19 +1518,20 @@ class VarsClass(object):
         labels = labels and self.labels  # if labels then self.labels, else 0
         name = name or self.name  # if name then name, else self.name
         header = header or self.header  # if header then header, else self.header
-        savedata(self.updateddata(),
-                 name + '+',
-                 dir=dir,
-                 labels=labels,
-                 header=header,
-                 format=format,
-                 pf=pf,
-                 maxy=maxy,
-                 machine=machine,
-                 descriptions=self.descriptions,
-                 units=self.units,
-                 notes=self.notes,
-                 silent=silent)
+        savedata(
+            self.updateddata(),
+            name + '+',
+            dir=dir,
+            labels=labels,
+            header=header,
+            format=format,
+            pf=pf,
+            maxy=maxy,
+            machine=machine,
+            descriptions=self.descriptions,
+            units=self.units,
+            notes=self.notes,
+            silent=silent)
 
     def savefitstable(self,
                       name='',
@@ -1562,14 +1556,14 @@ class VarsClass(object):
                 if not pyfitsusesnumpy:
                     a = numarray.array(a)
                 if label in list(units.keys()):
-                    col = pyfits.Column(name=label,
-                                        format=format.get(label, 'E'),
-                                        unit=units[label],
-                                        array=a)
+                    col = pyfits.Column(
+                        name=label,
+                        format=format.get(label, 'E'),
+                        unit=units[label],
+                        array=a)
                 else:
-                    col = pyfits.Column(name=label,
-                                        format=format.get(label, 'E'),
-                                        array=a)
+                    col = pyfits.Column(
+                        name=label, format=format.get(label, 'E'), array=a)
                 collist.append(col)
             cols = pyfits.ColDefs(collist)
             tbhdu = pyfits.new_table(cols)
@@ -1604,8 +1598,8 @@ class VarsClass(object):
                         word = words[iword]
                         if word:
                             if iword == 0:
-                                prihdr.add_comment('(%d) %s' %
-                                                   (inote + 1, word))
+                                prihdr.add_comment('(%d) %s' % (inote + 1,
+                                                                word))
                             else:
                                 prihdr.add_comment('    %s' % word)
                                 #prihdr.add_blank(word)
@@ -1623,6 +1617,8 @@ class VarsClass(object):
         else:
             os.system('cat tmp.cat')
         os.remove('tmp.cat')
+
+
 ##     def takecids(self, ids):
 ##         selfid = self.id.astype(int)
 ##         ids = ids.astype(int)
@@ -1723,7 +1719,8 @@ def saveimcat(cat, filename, dir="./", silent=0):
     outfile = dirfile(filename, dir)
     fout = open(outfile, 'w')
     fout.write(
-        "# IMCAT format catalogue file -- edit with 'lc' or my Python routines\n")
+        "# IMCAT format catalogue file -- edit with 'lc' or my Python routines\n"
+    )
 
     # COLUMN HEADERS
     fout.write("#")
@@ -1765,6 +1762,7 @@ def prunecols(infile, cols, outfile, separator=" "):
             fout.write(words[col - 1] + separator)
         fout.write("\n")
     fout.close()
+
 
 #################################
 # SExtractor/SExSeg CATALOGS / CONFIGURATION FILES
@@ -1948,11 +1946,13 @@ def loadsexcat(infile,
     fullparamnames = []
     for headline in header:
         ss = string.split(
-            headline)  # ['#', '15', 'X_IMAGE', 'Object position along x', '[pixel]']
+            headline
+        )  # ['#', '15', 'X_IMAGE', 'Object position along x', '[pixel]']
         if len(ss) == 1:
             break
-        col = string.atoi(ss[
-            1])  # 15  -- DON'T SUBTRACT 1 FROM col!  DON'T WANT A 0 COLUMN!  FACILITATES DATA DISTRIBUTION
+        col = string.atoi(
+            ss[1]
+        )  # 15  -- DON'T SUBTRACT 1 FROM col!  DON'T WANT A 0 COLUMN!  FACILITATES DATA DISTRIBUTION
         ncols = col - lastcol
         param = ss[2]  # "X_IMAGE"
         fullparamnames.append(param)
@@ -1979,10 +1979,14 @@ def loadsexcat(infile,
                 flags = ravel(data[col - 1]).astype(int)
                 param = "FLAGS"
             else:
-                flags = bitwise_or(flags, ravel(data[col - 1]).astype(
-                    int))  # "FLAGS" OR "IMAFLAGS_ISO"
+                flags = bitwise_or(
+                    flags,
+                    ravel(data[col
+                               - 1]).astype(int))  # "FLAGS" OR "IMAFLAGS_ISO"
                 param = ''
                 lastcol += 1
+
+
 ##      if (param == "FLAGS") and paramcol.has_key("FLAGS"):
 ##          param = "SHWAG"  # "IMAFLAGS_ISO" (THE REAL FLAGS) HAVE ALREADY BEEN FOUND
 ##      if param == "IMAFLAGS_ISO":  # FLAGS OR-ED WITH FLAG MAP IMAGE
@@ -2050,11 +2054,13 @@ def loadsexcat(infile,
     outdata = []
     #params = paramcol.keys()
     # RENAME params
-    paramtranslate = {'NUMBER': 'id',
-                      'CLASS_STAR': 'stellarity',
-                      'KRON_RADIUS': 'rk',
-                      'FLUX_RADIUS': 'rf',
-                      'ISOAREA': 'area'}
+    paramtranslate = {
+        'NUMBER': 'id',
+        'CLASS_STAR': 'stellarity',
+        'KRON_RADIUS': 'rk',
+        'FLUX_RADIUS': 'rf',
+        'ISOAREA': 'area'
+    }
     for ii in range(len(params)):
         param = params[ii]
         param = paramtranslate.get(
@@ -2176,16 +2182,17 @@ def loadsexcat2(infile,
                 silent=0,
                 dir=''):
     """RETURNS A VarsClass() VERSION OF THE CATALOG"""
-    loadsexcat(infile,
-               purge=purge,
-               maxflags=maxflags,
-               minfwhm=minfwhm,
-               minrf=minrf,
-               maxmag=maxmag,
-               magname=magname,
-               ma1name=ma1name,
-               silent=silent,
-               dir=dir)
+    loadsexcat(
+        infile,
+        purge=purge,
+        maxflags=maxflags,
+        minfwhm=minfwhm,
+        minrf=minrf,
+        maxmag=maxmag,
+        magname=magname,
+        ma1name=ma1name,
+        silent=silent,
+        dir=dir)
     # LOADS infile INTO data, params...
     cat = VarsClass()
     cat.name = infile
@@ -2231,6 +2238,7 @@ def savesexdict(sexdict, sexfile):
         fout.write('%s\t%s\n' % (key, sexdict[key]))
     fout.close()
 
+
 #################################
 # DS9 REGIONS FILES
 
@@ -2247,7 +2255,8 @@ def saveregions1(x,
     fout = open(filename, 'w')
     fout.write(
         'global color=' + color +
-        ' font="helvetica 10 normal" select=1 edit=1 move=1 delete=1 include=1 fixed=0 source\n')
+        ' font="helvetica 10 normal" select=1 edit=1 move=1 delete=1 include=1 fixed=0 source\n'
+    )
     #fout.write("image\n")
     fout.write(coords + "\n")
     n = len(x)
@@ -2262,6 +2271,8 @@ def saveregions1(x,
                 sout += ' # width = %d' % width
             sout += '\n'
             fout.write(sout)
+
+
 ##         if size:
 ##             fout.write("%s %6.1f %6.1f %d\n" % (symbol, x[i], y[i], size))
 ##         else:
@@ -2284,7 +2295,8 @@ def saveregions(x,
     fout = open(filename, 'w')
     fout.write(
         'global color=' + color +
-        ' font="helvetica 10 normal" select=1 edit=1 move=1 delete=1 include=1 fixed=0 source\n')
+        ' font="helvetica 10 normal" select=1 edit=1 move=1 delete=1 include=1 fixed=0 source\n'
+    )
     #fout.write("image\n")
     fout.write(coords + "\n")
     n = len(x)
@@ -2335,6 +2347,7 @@ def savelabels(x,
         label = "%%.%df" % precision % label
         fout.write("text %d %d {%s}\n" % (x[i], y[i], label))
     fout.close()
+
 
 #################################
 # FITS FILES
@@ -2401,6 +2414,7 @@ def fitssize(filename):
     filename = capfile(filename, '.fits')
     return pyfits.open(filename, memmap=1)[0]._dimShape()
 
+
 ## def fits2int(filename):
 ##     """CONVERTS A FITS FILE TO INTEGER"""
 ##     filename = capfile(filename, '.fits')
@@ -2435,6 +2449,7 @@ def txt2fits(textfile, fitsfile):
     """CONVERTS A TEXT FILE DATA ARRAY TO A FITS FILE"""
     savefits(loaddata(textfile), fitsfile)
 
+
 ## def fitsheadval(file, param):
 ##     return fitsio.parsehead(fitsio.gethead(file), param)
 
@@ -2468,7 +2483,7 @@ def txt2fits(textfile, fitsfile):
 ##     dy = 1. * (nyout - 1) / (nyin - 1)
 
 ##     # PRINT CREATE BOXES (4 POINTS) IN in SPACE, TRANSLATED TO out COORDS
-##     byout = array([0., dy]) 
+##     byout = array([0., dy])
 ##     # GO THROUGH out COORDS
 ##     iyin = 0
 ##     for iyout in range(nyout):
@@ -2502,8 +2517,8 @@ def loadpixelscale(image):
     os.system('imsize ' + capfile(image, '.fits') + ' > temp.txt')
     s = loadfile('temp.txt')[0]
     if string.find(s, '/pix') == -1:
-        print('PIXEL SCALE NOT GIVEN IN IMAGE HEADER OF', capfile(image,
-                                                                  '.fits'))
+        print('PIXEL SCALE NOT GIVEN IN IMAGE HEADER OF',
+              capfile(image, '.fits'))
         pixelscale = 0
     else:
         s = string.split(s, '/pix')[0]

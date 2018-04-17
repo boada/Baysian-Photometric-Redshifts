@@ -14,20 +14,19 @@ from builtins import input
 from builtins import range
 from past.utils import old_div
 from useful import *
-rolex = watch()
-rolex.set()
-
-#from Numeric import *
+import numpy as np
 from numpy import *
 from bpz_tools import *
 from string import *
-import os, glob, sys
+import os
+import glob
+import sys
 import time
-import pickle
 import shelve
-
 from coetools import pause, params_cl
 
+rolex = watch()
+rolex.set()
 class Printer():
     """Print things to stdout on one line dynamically"""
     def __init__(self, data):
@@ -36,14 +35,14 @@ class Printer():
 
 def seglist(vals, mask=None):
     """Split vals into lists based on mask > 0"""
-    if mask == None:
-        mask = greater(vals, 0)
+    if mask is None:
+        mask = np.greater(vals, 0)
     lists = []
     i = 0
     lastgood = False
     list1 = []
     for i in range(len(vals)):
-        if mask[i] == False:
+        if mask[i] is False:
             if lastgood:
                 lists.append(list1)
                 list1 = []
@@ -90,15 +89,15 @@ pars.d = {
     'PROBS_LITE': 'yes',  # Save only the final probability distribution
     'GET_Z': 'yes',  # Actually obtain photo-z
     'ONLY_TYPE': 'no',  # Use spectroscopic redshifts instead of photo-z
-    'MADAU': 'yes',  #Apply Madau correction to spectra
-    'Z_THR': 0,  #Integrate probability for z>z_thr
-    'COLOR': 'no',  #Use colors instead of fluxes
-    'PLOTS': 'no',  #Don't produce plots
-    'INTERACTIVE': 'yes',  #Don't query the user
+    'MADAU': 'yes',  # Apply Madau correction to spectra
+    'Z_THR': 0,  # Integrate probability for z>z_thr
+    'COLOR': 'no',  # Use colors instead of fluxes
+    'PLOTS': 'no',  # Don't produce plots
+    'INTERACTIVE': 'yes',  # Don't query the user
     'PHOTO_ERRORS':
-    'no',  #Define the confidence interval using only the photometric errors
+    'no',  # Define the confidence interval using only the photometric errors
     'MIN_RMS':
-    0.05,  #"Intrinsic"  photo-z rms in dz /(1+z) (Change to 0.05 for templates from Benitez et al. 2004
+    0.05,  # "Intrinsic"  photo-z rms in dz /(1+z) (Change to 0.05 for templates from Benitez et al. 2004
     'N_PEAKS': 1,
     'MERGE_PEAKS': 'no',
     'CONVOLVE_P': 'yes',
@@ -123,12 +122,13 @@ if plots:
     try:
         import matplotlib
         matplotlib.use('TkAgg')
+        import pylab as pyl
         from pylab import *
         # from coeplot2a import *
-        plot([1])
-        title('KILL THIS WINDOW!')
-        show()
-        ioff()
+        pyl.plot([1])
+        pyl.title('KILL THIS WINDOW!')
+        pyl.show()
+        pyl.ioff()
     except:
         try:
             from biggles import *
@@ -148,7 +148,7 @@ nargs = len(sys.argv)
 
 ipar = 2
 
-if nargs > 2:  #Check for parameter file and update parameters
+if nargs > 2:  # Check for parameter file and update parameters
     if sys.argv[2] == '-P':
         pars.fromfile(sys.argv[3])
         ipar = 4
@@ -212,7 +212,7 @@ if pars.d['VERBOSE'] == 'yes':
     print("Current parameters")
     view_keys(pars.d)
 pars.d['N_PEAKS'] = int(pars.d['N_PEAKS'])
-if pars.d["ADD_SPEC_PROB"] != None:
+if pars.d["ADD_SPEC_PROB"] is not None:
     specprob = 1
     specfile = pars.d["ADD_SPEC_PROB"]
     spec = get_2Darray(specfile)
@@ -240,8 +240,8 @@ pars.d['DELTA_M_0'] = float(pars.d['DELTA_M_0'])
 nofilters = ['M_0', 'OTHER', 'ID', 'Z_S']
 
 #Numerical codes for nondetection, etc. in the photometric catalog
-unobs = -99.  #Objects not observed
-undet = 99.  #Objects not detected
+unobs = -99.  # Objects not observed
+undet = 99.  # Objects not detected
 
 #Define the z-grid
 zmin = float(pars.d['ZMIN'])
@@ -251,7 +251,7 @@ dz = float(pars.d['DZ'])
 
 linear = 1
 if linear:
-    z = arange(zmin, zmax + dz, dz)
+    z = np.arange(zmin, zmax + dz, dz)
 else:
     if zmax != 0.:
         zi = zmin
@@ -259,9 +259,9 @@ else:
         while zi <= zmax:
             z.append(zi)
             zi = zi + dz * (1. + zi)
-        z = array(z)
+        z = np.array(z)
     else:
-        z = array([0.])
+        z = np.array([0.])
 
 #Now check the contents of the FILTERS,SED and A diBrectories
 
@@ -324,7 +324,7 @@ nt = len(spectra)
 nz = len(z)
 
 #Get the model fluxes
-f_mod = zeros((nz, nt, nf)) * 0.
+f_mod = np.zeros((nz, nt, nf)) * 0.
 abfiles = []
 
 for it in range(nt):
@@ -346,7 +346,7 @@ for it in range(nt):
         #print spectra[it],filters[jf]
             print('     Generating ', model, '....')
             ABflux(spectra[it], filtro, madau=pars.d['MADAU'])
-            #z_ab=arange(0.,zmax_ab,dz_ab) #zmax_ab and dz_ab are def. in bpz_tools
+            #z_ab=np.arange(0.,zmax_ab,dz_ab) #zmax_ab and dz_ab are def. in bpz_tools
             # abflux=f_z_sed(spectra[it],filters[jf], z_ab,units='nu',madau=pars.d['MADAU'])
             # abflux=clip(abflux,0.,1e400)
             # buffer=join(['#',spectra[it],filters[jf], 'AB','\n'])
@@ -361,8 +361,8 @@ for it in range(nt):
         zo, f_mod_0 = get_data(model_path, (0, 1))
         #Rebin the data to the required redshift resolution
         f_mod[:, it, jf] = match_resol(zo, f_mod_0, z)
-        #if sometrue(less(f_mod[:,it,jf],0.)):
-        if less(f_mod[:, it, jf], 0.).any():
+        #if sometrue(np.less(f_mod[:,it,jf],0.)):
+        if np.less(f_mod[:, it, jf], 0.).any():
             print('Warning: some values of the model AB fluxes are <0')
             print('due to the interpolation ')
             print('Clipping them to f>=0 values')
@@ -370,7 +370,7 @@ for it in range(nt):
             f_mod[:, it, jf] = clip(f_mod[:, it, jf], 0., 1e300)
 
         #We forbid f_mod to take values in the (0,1e-100) interval
-        #f_mod[:,it,jf]=where(less(f_mod[:,it,jf],1e-100)*greater(f_mod[:,it,jf],0.),0.,f_mod[:,it,jf])
+        #f_mod[:,it,jf]=np.where(np.less(f_mod[:,it,jf],1e-100)*np.greater(f_mod[:,it,jf],0.),0.,f_mod[:,it,jf])
 
         #Here goes the interpolacion between the colors
 ninterp = int(pars.d['INTERP'])
@@ -398,10 +398,10 @@ else:
 
 if ninterp:
     nti = nt + (nt - 1) * ninterp
-    buffer = zeros((nz, nti, nf)) * 1.
-    tipos = arange(0., float(nti), float(ninterp) + 1.)
-    xtipos = arange(float(nti))
-    for iz in arange(nz):
+    buffer = np.zeros((nz, nti, nf)) * 1.
+    tipos = np.arange(0., float(nti), float(ninterp) + 1.)
+    xtipos = np.arange(float(nti))
+    for iz in np.arange(nz):
         for jf in range(nf):
             buffer[iz, :, jf] = match_resol(tipos, f_mod[iz, :, jf], xtipos)
     nt = nti
@@ -430,9 +430,9 @@ for filter in filters:
     cals.append(datos[2])
     zp_errors.append(datos[3])
     zp_offsets.append(datos[4])
-zp_offsets = array(list(map(float, zp_offsets)))
+zp_offsets = np.array(list(map(float, zp_offsets)))
 if pars.d['ZP_OFFSETS']:
-    zp_offsets += array(list(map(float, pars.d['ZP_OFFSETS'])))
+    zp_offsets += np.array(list(map(float, pars.d['ZP_OFFSETS'])))
 
 flux_cols = tuple(flux_cols)
 eflux_cols = tuple(eflux_cols)
@@ -443,14 +443,14 @@ ef_obs = get_2Darray(obs_file, eflux_cols)
 
 #Convert them to arbitrary fluxes if they are in magnitudes
 if pars.d['MAG'] == 'yes':
-    seen = greater(f_obs, 0.) * less(f_obs, undet)
+    seen = np.greater(f_obs, 0.) * np.less(f_obs, undet)
     no_seen = equal(f_obs, undet)
     no_observed = equal(f_obs, unobs)
     todo = seen + no_seen + no_observed
     #The minimum photometric error is 0.01
     #ef_obs=ef_obs+seen*equal(ef_obs,0.)*0.001
-    ef_obs = where(
-        greater_equal(ef_obs, 0.), clip(ef_obs, pars.d['MIN_MAGERR'], 1e10),
+    ef_obs = np.where(
+        np.greater_equal(ef_obs, 0.), clip(ef_obs, pars.d['MIN_MAGERR'], 1e10),
         ef_obs)
     if add.reduce(add.reduce(todo)) != todo.shape[0] * todo.shape[1]:
         print('Objects with unexpected magnitudes!')
@@ -464,7 +464,7 @@ if pars.d['MAG'] == 'yes':
 
 #Detected objects
     try:
-        f_obs = where(seen, 10.**(-.4 * f_obs), f_obs)
+        f_obs = np.where(seen, 10.**(-.4 * f_obs), f_obs)
     except OverflowError:
         print(
             'Some of the input magnitudes have values which are >700 or <-700')
@@ -477,7 +477,7 @@ if pars.d['MAG'] == 'yes':
         sys.exit()
 
     try:
-        ef_obs = where(seen, (10.**(.4 * ef_obs) - 1.) * f_obs, ef_obs)
+        ef_obs = np.where(seen, (10.**(.4 * ef_obs) - 1.) * f_obs, ef_obs)
     except OverflowError:
         print(
             'Some of the input magnitude errors have values which are >700 or <-700')
@@ -497,12 +497,12 @@ if pars.d['MAG'] == 'yes':
     #We take the flux equal to zero, and the error in the flux equal to the 1-sigma detection error.
     #If m=99, the corresponding error magnitude column in supposed to be dm=m_1sigma, to avoid errors
     #with the sign we take the absolute value of dm
-    f_obs = where(no_seen, 0., f_obs)
-    ef_obs = where(no_seen, 10.**(-.4 * abs(ef_obs)), ef_obs)
+    f_obs = np.where(no_seen, 0., f_obs)
+    ef_obs = np.where(no_seen, 10.**(-.4 * abs(ef_obs)), ef_obs)
 
     #Objects not looked at (mag=-99.)
-    f_obs = where(no_observed, 0., f_obs)
-    ef_obs = where(no_observed, 0., ef_obs)
+    f_obs = np.where(no_observed, 0., f_obs)
+    ef_obs = np.where(no_observed, 0., ef_obs)
 
 #Flux codes:
 # If f>0 and ef>0 : normal objects
@@ -511,17 +511,17 @@ if pars.d['MAG'] == 'yes':
 #Everything else will crash the program
 
 #Check that the observed error fluxes are reasonable
-#if sometrue(less(ef_obs,0.)): raise 'Negative input flux errors'
-if less(ef_obs, 0.).any(): raise 'Negative input flux errors'
+#if sometrue(np.less(ef_obs,0.)): raise 'Negative input flux errors'
+if np.less(ef_obs, 0.).any(): raise 'Negative input flux errors'
 
-f_obs = where(less(f_obs, 0.), 0., f_obs)  #Put non-detections to 0
-ef_obs = where(
-    less(f_obs, 0.), maximum(1e-100, f_obs + ef_obs),
+f_obs = np.where(np.less(f_obs, 0.), 0., f_obs)  #Put non-detections to 0
+ef_obs = np.where(
+    np.less(f_obs, 0.), maximum(1e-100, f_obs + ef_obs),
     ef_obs)  # Error equivalent to 1 sigma upper limit
 
-#if sometrue(less(f_obs,0.)) : raise 'Negative input fluxes'
-seen = greater(f_obs, 0.) * greater(ef_obs, 0.)
-no_seen = equal(f_obs, 0.) * greater(ef_obs, 0.)
+#if sometrue(np.less(f_obs,0.)) : raise 'Negative input fluxes'
+seen = np.greater(f_obs, 0.) * np.greater(ef_obs, 0.)
+no_seen = equal(f_obs, 0.) * np.greater(ef_obs, 0.)
 no_observed = equal(f_obs, 0.) * equal(ef_obs, 0.)
 
 todo = seen + no_seen + no_observed
@@ -531,21 +531,21 @@ if add.reduce(add.reduce(todo)) != todo.shape[0] * todo.shape[1]:
 #Convert (internally) objects with zero flux and zero error(non observed)
 #to objects with almost infinite (~1e108) error and still zero flux
 #This will yield reasonable likelihoods (flat ones) for these objects
-ef_obs = where(no_observed, 1e108, ef_obs)
+ef_obs = np.where(no_observed, 1e108, ef_obs)
 
 #Include the zero point errors
-zp_errors = array(list(map(float, zp_errors)))
+zp_errors = np.array(list(map(float, zp_errors)))
 zp_frac = e_mag2frac(zp_errors)
 #zp_frac=10.**(.4*zp_errors)-1.
-ef_obs = where(seen, sqrt(ef_obs * ef_obs + (zp_frac * f_obs)**2), ef_obs)
-ef_obs = where(no_seen,
+ef_obs = np.where(seen, sqrt(ef_obs * ef_obs + (zp_frac * f_obs)**2), ef_obs)
+ef_obs = np.where(no_seen,
                sqrt(ef_obs * ef_obs + (zp_frac * (old_div(ef_obs, 2.)))**2),
                ef_obs)
 
 #Add the zero-points offset
 #The offsets are defined as m_new-m_old
-zp_offsets = array(list(map(float, zp_offsets)))
-zp_offsets = where(not_equal(zp_offsets, 0.), 10.**(-.4 * zp_offsets), 1.)
+zp_offsets = np.array(list(map(float, zp_offsets)))
+zp_offsets = np.where(not_equal(zp_offsets, 0.), 10.**(-.4 * zp_offsets), 1.)
 f_obs = f_obs * zp_offsets
 ef_obs = ef_obs * zp_offsets
 
@@ -603,20 +603,20 @@ checkSED = check != 'no'
 ng = f_obs.shape[0]
 if checkSED:
     # PHOTOMETRIC CALIBRATION CHECK
-    #r=zeros((ng,nf),float)+1.
-    #dm=zeros((ng,nf),float)+1.
+    #r=np.zeros((ng,nf),float)+1.
+    #dm=np.zeros((ng,nf),float)+1.
     #w=r*0.
     # Defaults: r=1, dm=1, w=0
-    frat = ones((ng, nf), float)
-    dmag = ones((ng, nf), float)
-    fw = zeros((ng, nf), float)
+    frat = np.ones((ng, nf), float)
+    dmag = np.ones((ng, nf), float)
+    fw = np.zeros((ng, nf), float)
 
 #Visualize the colors of the galaxies and the templates
 
 #When there are spectroscopic redshifts available
 if interactive and 'Z_S' in col_pars.d and plots and checkSED and ask(
         'Plot colors vs spectroscopic redshifts?'):
-    color_m = zeros((nz, nt, nf - 1)) * 1.
+    color_m = np.zeros((nz, nt, nf - 1)) * 1.
     if plots == 'pylab':
         figure(1)
     nrows = 2
@@ -627,7 +627,7 @@ if interactive and 'Z_S' in col_pars.d and plots and checkSED and ask(
         # Check for overflows
         fmu = f_obs[:, i + 1]
         fml = f_obs[:, i]
-        good = greater(fml, 1e-100) * greater(fmu, 1e-100)
+        good = np.greater(fml, 1e-100) * np.greater(fmu, 1e-100)
         zz, fmu, fml = multicompress(good, (z_s, fmu, fml))
         colour = old_div(fmu, fml)
         colour = clip(colour, 1e-5, 1e5)
@@ -642,7 +642,7 @@ if interactive and 'Z_S' in col_pars.d and plots and checkSED and ask(
             #Prevent overflows
             fmu = f_mod[:, it, i + 1]
             fml = f_mod[:, it, i]
-            good = greater(fml, 1e-100)
+            good = np.greater(fml, 1e-100)
             zz, fmu, fml = multicompress(good, (z, fmu, fml))
             colour = old_div(fmu, fml)
             colour = clip(colour, 1e-5, 1e5)
@@ -762,20 +762,20 @@ if has_mags and tipo_prior != 'none' and tipo_prior != 'flat':
 cluster_prior = 0.
 if pars.d['ZC']:
     cluster_prior = 1
-    if type(pars.d['ZC']) == type(""): zc = array([float(pars.d['ZC'])])
-    else: zc = array(list(map(float, pars.d['ZC'])))
-    if type(pars.d['FC']) == type(""): fc = array([float(pars.d['FC'])])
-    else: fc = array(list(map(float, pars.d['FC'])))
+    if type(pars.d['ZC']) == type(""): zc = np.array([float(pars.d['ZC'])])
+    else: zc = np.array(list(map(float, pars.d['ZC'])))
+    if type(pars.d['FC']) == type(""): fc = np.array([float(pars.d['FC'])])
+    else: fc = np.array(list(map(float, pars.d['FC'])))
 
     fcc = add.reduce(fc)
     if fcc > 1.:
         print(ftc)
         raise 'Too many galaxies in clusters!'
-    pi_c = zeros((nz, nt)) * 1.
+    pi_c = np.zeros((nz, nt)) * 1.
     #Go over the different cluster spikes
     for i in range(len(zc)):
         #We define the cluster within dz=0.01 limits
-        cluster_range = less_equal(abs(z - zc[i]), .01) * 1.
+        cluster_range = np.less_equal(abs(z - zc[i]), .01) * 1.
         #Clip values to avoid overflow
         exponente = clip(-(z - zc[i])**2 / 2. / (0.00333)**2, -700., 0.)
         #Outside the cluster range g is 0
@@ -855,7 +855,7 @@ if pars.d['CONVOLVE_P'] == 'yes':
     # Will Convolve with a dz=0.03 gaussian to make probabilities smoother
     # This is necessary; if not there are too many close peaks
     sigma_g = 0.03
-    x = arange(-3. * sigma_g, 3. * sigma_g + old_div(dz, 10.),
+    x = np.arange(-3. * sigma_g, 3. * sigma_g + old_div(dz, 10.),
                dz)  # made symmetric --DC
     gaus = exp(-(old_div(x, sigma_g))**2)
 
@@ -892,7 +892,7 @@ for ig in range(ng):
 
     if pars.d[
             'ONLY_TYPE'] == 'yes':  #Use only the redshift information, no priors
-        p_i = zeros((nz, nt)) * 1.
+        p_i = np.zeros((nz, nt)) * 1.
         j = searchsorted(z, z_s[ig])
         #print j,nt,z_s[ig]
         try:
@@ -906,7 +906,7 @@ for ig in range(ng):
             else:
                 p_i = prior(z, m_0[ig], tipo_prior, nt0, ninterp)
         else:
-            p_i = old_div(ones((nz, nt), float), float(nz * nt))
+            p_i = old_div(np.ones((nz, nt), float), float(nz * nt))
         if cluster_prior: p_i = (1. - fcc) * p_i + pi_c
 
     if save_full_probs:
@@ -945,8 +945,8 @@ for ig in range(ng):
 
         # Eliminate all low level features in the prob. distribution
     pmax = max(p_bayes)
-    p_bayes = where(
-        greater(p_bayes, pmax * float(pars.d['P_MIN'])), p_bayes, 0.)
+    p_bayes = np.where(
+        np.greater(p_bayes, pmax * float(pars.d['P_MIN'])), p_bayes, 0.)
 
     norm = add.reduce(p_bayes)
     p_bayes = old_div(p_bayes, norm)
@@ -968,16 +968,16 @@ for ig in range(ng):
 
     if pars.d['N_PEAKS'] > 1:
         # Identify  maxima and minima in the final probability
-        g_max = less(p_bayes[2:], p_bayes[1:-1]) * less(p_bayes[:-2],
+        g_max = np.less(p_bayes[2:], p_bayes[1:-1]) * np.less(p_bayes[:-2],
                                                         p_bayes[1:-1])
-        g_min = greater(p_bayes[2:], p_bayes[1:-1]) * greater(p_bayes[:-2],
+        g_min = np.greater(p_bayes[2:], p_bayes[1:-1]) * np.greater(p_bayes[:-2],
                                                               p_bayes[1:-1])
 
-        g_min += equal(p_bayes[1:-1], 0.) * greater(p_bayes[2:], 0.)
-        g_min += equal(p_bayes[1:-1], 0.) * greater(p_bayes[:-2], 0.)
+        g_min += equal(p_bayes[1:-1], 0.) * np.greater(p_bayes[2:], 0.)
+        g_min += equal(p_bayes[1:-1], 0.) * np.greater(p_bayes[:-2], 0.)
 
-        i_max = compress(g_max, arange(nz - 2)) + 1
-        i_min = compress(g_min, arange(nz - 2)) + 1
+        i_max = compress(g_max, np.arange(nz - 2)) + 1
+        i_min = compress(g_min, np.arange(nz - 2)) + 1
 
         # Check that the first point and the last one are not minima or maxima,
         # if they are, add them to the index arrays
@@ -1012,7 +1012,7 @@ for ig in range(ng):
             # print z_peaks[-1][0],f_mod[i_max[i],t_peaks[-1]-1,:nf]
 
         if ninterp:
-            t_peaks = list(old_div(array(t_peaks), (1. + ninterp)))
+            t_peaks = list(old_div(np.array(t_peaks), (1. + ninterp)))
 
         if pars.d['MERGE_PEAKS'] == 'yes':
             # Merge peaks which are very close 0.03(1+z)
@@ -1046,8 +1046,8 @@ for ig in range(ng):
             for j in merged:
                 p_max.remove(copia[j])
 
-        if sum(array(p_tot)) != 1.:
-            p_tot = old_div(array(p_tot), sum(array(p_tot)))
+        if sum(np.array(p_tot)) != 1.:
+            p_tot = old_div(np.array(p_tot), sum(np.array(p_tot)))
 
             # Define the peak
     iz_b = argmax(p_bayes)
@@ -1150,7 +1150,7 @@ for ig in range(ng):
     if pars.d['VERBOSE'] == 'yes': print(format % tuple(salida))
 
     #try:
-    #    if sometrue(greater(z_peaks,7.5)):
+    #    if sometrue(np.greater(z_peaks,7.5)):
     #        connect(z,p_bayes)
     #        ask('More?')
     #except:
@@ -1197,35 +1197,35 @@ for ig in range(ng):
             # otherwise, leave weight w = 0 by default
             eps = 1e-10
             frat[ig, :] = divsafe(fo, ft, inf=eps, nan=eps)
-            #fw[ig,:] = greater(fo, 0)
+            #fw[ig,:] = np.greater(fo, 0)
             fw[ig, :] = divsafe(fo, efo, inf=1e8, nan=0)
             fw[ig, :] = clip(fw[ig, :], 0, 100)
             #print fw[ig,:]
             #print
 
         if 0:
-            bad = less_equal(ft, 0.)
+            bad = np.less_equal(ft, 0.)
             #Avoid overflow by setting r to 0.
-            fo = where(bad, 0., fo)
-            ft = where(bad, 1., ft)
+            fo = np.where(bad, 0., fo)
+            ft = np.where(bad, 1., ft)
             r[ig, :] = old_div(fo, ft)
             try:
                 dm[ig, :] = -flux2mag(old_div(fo, ft))
             except:
                 dm[ig, :] = -100
     # Clip ratio between 0.01 & 100
-            r[ig, :] = where(greater(r[ig, :], 100.), 100., r[ig, :])
-            r[ig, :] = where(less_equal(r[ig, :], 0.), 0.01, r[ig, :])
+            r[ig, :] = np.where(np.greater(r[ig, :], 100.), 100., r[ig, :])
+            r[ig, :] = np.where(np.less_equal(r[ig, :], 0.), 0.01, r[ig, :])
             #Weight by flux
-            w[ig, :] = where(greater(fo, 0.), 1, 0.)
-            #w[ig,:]=where(greater(fo,0.),fo,0.)
+            w[ig, :] = np.where(np.greater(fo, 0.), 1, 0.)
+            #w[ig,:]=np.where(np.greater(fo,0.),fo,0.)
             #print fo
             #print r[ig,:]
             #print
             # This is no good becasue r is always > 0 (has been clipped that way)
-            #w[ig,:]=where(greater(r[ig,:],0.),fo,0.)
+            #w[ig,:]=np.where(np.greater(r[ig,:],0.),fo,0.)
             # The is bad because it would include non-detections:
-            #w[ig,:]=where(greater(r[ig,:],0.),1.,0.)
+            #w[ig,:]=np.where(np.greater(r[ig,:],0.),1.,0.)
 
     if save_probs:
         texto = '%s ' % str(id[ig])
@@ -1240,17 +1240,17 @@ for ig in range(ng):
     if save_probs2:  # P = exp(-chisq / 2)
         #probs2.write('%s\n' % id[ig])
         pmin = pmax * float(pars.d['P_MIN'])
-        #pb = where(less(pb,pmin), 0, pb)
+        #pb = np.where(np.less(pb,pmin), 0, pb)
         chisq = -2 * log(pb)
         for itb in range(nt):
             chisqtb = chisq[:, itb]
-            pqual = greater(pb[:, itb], pmin)
+            pqual = np.greater(pb[:, itb], pmin)
             chisqlists = seglist(chisqtb, pqual)
             if len(chisqlists) == 0:
                 continue
             #print pb[:,itb]
             #print chisqlists
-            zz = arange(zmin, zmax + dz, dz)
+            zz = np.arange(zmin, zmax + dz, dz)
             zlists = seglist(zz, pqual)
             for i in range(len(zlists)):
                 probs2.write('%s  %2d  %.3f  ' %
@@ -1285,11 +1285,11 @@ if checkSED:
 
             fratavg = old_div(sum(fw * frat, axis=0), sum(fw, axis=0))
             dmavg = -flux2mag(fratavg)
-            fnobj = sum(greater(fw, 0), axis=0)
+            fnobj = sum(np.greater(fw, 0), axis=0)
             #print 'fratavg', fratavg
             #print 'dmavg', dmavg
             #print 'fnobj', fnobj
-            #fnobj = sum(greater(w[:,i],0))
+            #fnobj = sum(np.greater(w[:,i],0))
             print(
                 "If the dmag are large, add them to the .columns file (zp_offset), then re-run BPZ.")
             print(
@@ -1300,7 +1300,7 @@ if checkSED:
             for i in range(nf):
                 print('% 7.3f  % 7.3f %5d   %s'\
                     % (fratavg[i], dmavg[i], fnobj[i], filters[i]))
-                #% (ratios[i], -flux2mag(ratios)[i], sum(greater(w[:,i],0)), filters[i])
+                #% (ratios[i], -flux2mag(ratios)[i], sum(np.greater(w[:,i],0)), filters[i])
                 #print '  fo/ft    dmag    filter'
                 #for i in range(nf):
                 #    print '% 7.3f  % 7.3f   %s'  % (ratios[i], -flux2mag(ratios)[i], filters[i])
@@ -1316,9 +1316,9 @@ if checkSED:
             # print w
             #print
             #print "Number of galaxies considered (with ODDS >= %g):" % odd_check
-            #print '  ', sum(greater(w,0)) / float(nf)
+            #print '  ', sum(np.greater(w,0)) / float(nf)
             #print '(Note a galaxy detected in only 5 / 6 filters counts as 5/6 = 0.833)'
-            #print sum(greater(w,0))
+            #print sum(np.greater(w,0))
 
             #This part is experimental and may not work in the general case
             #print "Median color offsets for objects with odds > "+`odd_check`+" (not weighted)"
@@ -1330,14 +1330,14 @@ if checkSED:
             #efobs=[]
 
             #for j in range(nf):
-            #    ee=where(greater(f_obs[:,j],0.),f_obs[:,j],2.)
+            #    ee=np.where(np.greater(f_obs[:,j],0.),f_obs[:,j],2.)
             #    zz=e_frac2mag(ef_obs[:,j]/ee)
             #
-            #    xer=arange(0.,1.,.02)
+            #    xer=np.arange(0.,1.,.02)
             #    hr=hist(abs(r[:,j]),xer)
             #    hee=hist(zz,xer)
-            #    rms.append(std_log(compress(less_equal(r[:,j],1.),r[:,j])))
-            #    zz=compress(less_equal(zz,1.),zz)
+            #    rms.append(std_log(compress(np.less_equal(r[:,j],1.),r[:,j])))
+            #    zz=compress(np.less_equal(zz,1.),zz)
             #    efobs.append(sqrt(mean(zz*zz)))
 
             #print  nf*' %.3f       ' % tuple(rms)
@@ -1356,21 +1356,21 @@ if plots and checkSED:
 
     if 'Z_S' in col_pars.d:
         if not interactive or ask('Compare z_B vs z_spec?'):
-            good = less(z_s, 9.99)
+            good = np.less(z_s, 9.99)
             print(
                 'Total initial number of objects with spectroscopic redshifts= ',
                 sum(good))
             od_th = 0.
             if ask('Select for galaxy characteristics?\n'):
                 od_th = eval(input('Odds threshold?\n'))
-                good *= greater_equal(o, od_th)
+                good *= np.greater_equal(o, od_th)
                 t_min = eval(input('Minimum spectral type\n'))
                 t_max = eval(input('Maximum spectral type\n'))
-                good *= less_equal(tb, t_max) * greater_equal(tb, t_min)
+                good *= np.less_equal(tb, t_max) * np.greater_equal(tb, t_min)
                 if has_mags:
                     mg_min = eval(input('Bright magnitude limit?\n'))
                     mg_max = eval(input('Faint magnitude limit?\n'))
-                    good = good * less_equal(m_0, mg_max) * greater_equal(
+                    good = good * np.less_equal(m_0, mg_max) * np.greater_equal(
                         m_0, mg_min)
 
             zmo, zso, zbo, zb1o, zb2o, tb = multicompress(good, (zm, z_s, zb,
@@ -1380,10 +1380,10 @@ if plots and checkSED:
             deltaz = old_div((zso - zbo), (1. + zso))
             sz = stat_robust(deltaz, 3., 3)
             sz.run()
-            outliers = greater_equal(abs(deltaz), 3. * sz.rms)
+            outliers = np.greater_equal(abs(deltaz), 3. * sz.rms)
             print('Number of outliers [dz >%.2f*(1+z)]=%i' %
                   (3. * sz.rms, add.reduce(outliers)))
-            catastrophic = greater_equal(deltaz * (1. + zso), 1.)
+            catastrophic = np.greater_equal(deltaz * (1. + zso), 1.)
             n_catast = sum(catastrophic)
             print('Number of catastrophic outliers [dz >1]=', n_catast)
             print('Delta z/(1+z) = %.4f +- %.4f' % (sz.median, sz.rms))
@@ -1392,8 +1392,8 @@ if plots and checkSED:
                     figure(2)
                     subplot(211)
                     plot(
-                        arange(
-                            min(zso), max(zso) + 0.01, 0.01), arange(
+                        np.arange(
+                            min(zso), max(zso) + 0.01, 0.01), np.arange(
                                 min(zso), max(zso) + 0.01, 0.01), "r")
                     errorbar(zso,
                              zbo, [abs(zbo - zb1o), abs(zb2o - zbo)],
@@ -1433,14 +1433,14 @@ if plots and checkSED:
         if plots == 'biggles':
             dz = eval(input('Redshift interval?\n'))
             od_th = eval(input('Odds threshold?\n'))
-            good = greater_equal(o, od_th)
+            good = np.greater_equal(o, od_th)
             if has_mags:
                 mg_min = eval(input('Bright magnitude limit?\n'))
                 mg_max = eval(input('Faint magnitude limit?\n'))
-                good = good * less_equal(m_0, mg_max) * greater_equal(m_0,
+                good = good * np.less_equal(m_0, mg_max) * np.greater_equal(m_0,
                                                                       mg_min)
             z = compress(good, zb)
-            xz = arange(zmin, zmax, dz)
+            xz = np.arange(zmin, zmax, dz)
             hz = hist(z, xz)
             plot = FramedPlot()
             h = Histogram(hz, 0., dz, color='blue')
@@ -1456,13 +1456,13 @@ if plots and checkSED:
     if interactive and plots and ask(
             'Compare colors with photometric redshifts?'):
         if plots == 'biggles':
-            color_m = zeros((nz, nt, nf - 1)) * 1.
+            color_m = np.zeros((nz, nt, nf - 1)) * 1.
             for i in range(nf - 1):
                 plot = FramedPlot()
                 # Check for overflows
                 fmu = f_obs[:, i + 1]
                 fml = f_obs[:, i]
-                good = greater(fml, 1e-100) * greater(fmu, 1e-100)
+                good = np.greater(fml, 1e-100) * np.greater(fmu, 1e-100)
                 zz, fmu, fml = multicompress(good, (zb, fmu, fml))
                 colour = old_div(fmu, fml)
                 colour = clip(colour, 1e-5, 1e5)
@@ -1473,7 +1473,7 @@ if plots and checkSED:
                     #Prevent overflows
                     fmu = f_mod[:, it, i + 1]
                     fml = f_mod[:, it, i]
-                    good = greater(fml, 1e-100)
+                    good = np.greater(fml, 1e-100)
                     zz, fmu, fml = multicompress(good, (z, fmu, fml))
                     colour = old_div(fmu, fml)
                     colour = clip(colour, 1e-5, 1e5)
