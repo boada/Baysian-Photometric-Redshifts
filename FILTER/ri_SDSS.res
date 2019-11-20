@@ -1,0 +1,1 @@
+SDSS/ri_SDSS.res

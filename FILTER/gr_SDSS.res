@@ -1,0 +1,1 @@
+SDSS/gr_SDSS.res

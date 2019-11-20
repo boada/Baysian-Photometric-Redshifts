@@ -1,0 +1,1 @@
+SDSS/ug_SDSS.res
